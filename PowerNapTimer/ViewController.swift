@@ -18,6 +18,7 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setView()
+        myTimer.delegate = self
     }
     
     func setView() {
@@ -38,9 +39,24 @@ class ViewController: UIViewController {
         if myTimer.isOn {
             myTimer.stopTimer()
         } else {
-            myTimer.startTimer(20*60.0)
+            myTimer.startTimer(15)
         }
         setView()
     }
 }
 
+extension ViewController: TimerDelegate {
+    func timerSecondTick() {
+        print("timer second tick run")
+    }
+    
+    func timeIsCompleted() {
+        print("timer completed run")
+    }
+    
+    func timerStopped() {
+        print("timer stopped run")
+    }
+    
+    
+}

@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import UserNotifications
 
 class ViewController: UIViewController {
     
@@ -14,6 +15,7 @@ class ViewController: UIViewController {
     @IBOutlet weak var startButton: UIButton!
     
     let myTimer = MyTimer()
+    private let notificationIdentifier = "notification"
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -39,7 +41,9 @@ class ViewController: UIViewController {
         if myTimer.isOn {
             myTimer.stopTimer()
         } else {
-            myTimer.startTimer(15)
+            let initialClock = 5.0
+            myTimer.startTimer(initialClock)
+            scheduleNotification(with: initialClock)
         }
         setView()
     }
@@ -56,26 +60,73 @@ extension ViewController: TimerDelegate {
     }
     
     func timerStopped() {
-        print("timer stopped run")
+        cancelNotification()
+        setView()
     }
 }
 
 extension ViewController {
     func createAlert() {
+        
+        // Create alert instance of UIAlertController type.
         let alert = UIAlertController(title: "Wake Up", message: "Get out of bed.", preferredStyle: .alert)
         
+        // Setup alert UI
         alert.addTextField { (myNewTextField) in
             myNewTextField.placeholder = "Snooze for a few more minutes..."
             myNewTextField.keyboardType = .numberPad
         }
         
-        let dismissAction = UIAlertAction(title: "Dismiss", style: .cancel) { (_) in
-            print("Was dismissed")
+        // Define action for the alert
+        let dismissAction = UIAlertAction(title: "Dimiss", style: .cancel) { (_) in
+            print("Was dismissed.")
+            self.cancelNotification()
         }
         
+        let snoozeAction = UIAlertAction(title: "Snooze", style: .default) { (_) in
+            guard let timeText = alert.textFields?.first?.text, let time = TimeInterval(timeText) else { return }
+            
+            self.myTimer.startTimer(time)
+            self.scheduleNotification(with: time)
+            self.setView()
+        }
+        
+        // Link newly defined action to your alert object.
         alert.addAction(dismissAction)
+        alert.addAction(snoozeAction)
         
         present(alert, animated: true, completion: nil)
+        
     }
+}
+
+// MARK: - User Notifications
+
+extension ViewController {
+    
+    func scheduleNotification(with timeInterval: TimeInterval) {
+        
+        let content = UNMutableNotificationContent()
+        content.title = "Wake Up"
+        content.body = "Time to get up"
+        content.sound = UNNotificationSound.default()
+        
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: timeInterval, repeats: false)
+        
+        let request = UNNotificationRequest(identifier: notificationIdentifier, content: content, trigger: trigger)
+        
+        UNUserNotificationCenter.current().add(request) { (error) in
+            if let error = error {
+                print(error.localizedDescription)
+            }
+        }
+    }
+    
+    func cancelNotification() {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [notificationIdentifier])
+    }
+    
+    
+    
 }
 

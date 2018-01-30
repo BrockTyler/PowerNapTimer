@@ -47,16 +47,35 @@ class ViewController: UIViewController {
 
 extension ViewController: TimerDelegate {
     func timerSecondTick() {
-        print("timer second tick run")
+        updateTimerLabel()
     }
     
     func timeIsCompleted() {
-        print("timer completed run")
+        setView()
+        createAlert()
     }
     
     func timerStopped() {
         print("timer stopped run")
     }
-    
-    
 }
+
+extension ViewController {
+    func createAlert() {
+        let alert = UIAlertController(title: "Wake Up", message: "Get out of bed.", preferredStyle: .alert)
+        
+        alert.addTextField { (myNewTextField) in
+            myNewTextField.placeholder = "Snooze for a few more minutes..."
+            myNewTextField.keyboardType = .numberPad
+        }
+        
+        let dismissAction = UIAlertAction(title: "Dismiss", style: .cancel) { (_) in
+            print("Was dismissed")
+        }
+        
+        alert.addAction(dismissAction)
+        
+        present(alert, animated: true, completion: nil)
+    }
+}
+
